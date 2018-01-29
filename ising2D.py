@@ -889,7 +889,3 @@ class IsingHexagon:
             plt.legend()
 
             plt.show()
-
-iss = IsingHexagon(order=30, interactionVal=1, magMoment=0)
-
-iss.tempRangeIter(tempRange=np.arange(0.1, 5, 0.2), plotProperties=True, itersPerTemp=1000000)
