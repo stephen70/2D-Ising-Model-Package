@@ -26,16 +26,16 @@ class IsingSquare:
         self.suscepList = []
 
         self.spins = []
-        self.resetSpins()
+        self.__resetSpins()
 
     # reset the spin lattice to a random configuration
-    def resetSpins(self):
+    def __resetSpins(self):
         vals = np.array([-1, 1])
 
         self.spins = np.random.choice(vals, size=(self.order, self.order))
 
     # returns an array of an atom's 4 nearest neighbours
-    def neighbours(self, row, col):
+    def __neighbours(self, row, col):
 
         return np.asarray([self.spins[row][col - 1],                 #left
                            self.spins[row][(col + 1) % self.order],  #right
@@ -43,19 +43,19 @@ class IsingSquare:
                            self.spins[(row + 1) % self.order][col]]) #down
 
     # calculates the energy of a single atom, using the Hamiltonian
-    def singleEnergy(self, row, col):
+    def __singleEnergy(self, row, col):
 
-        neighbours = self.neighbours(row, col)
+        neighbours = self.__neighbours(row, col)
         selfSpin = self.spins[row][col]
         return self.J * selfSpin * np.sum(np.sum(neighbours)) - self.h * selfSpin
 
     # calculates the magnitude of the entire energy of the lattice
-    def totalEnergy(self):
+    def __totalEnergy(self):
 
         energy = 0.0
         for i in np.arange(self.order):
             for j in np.arange(self.order):
-                energy += self.singleEnergy(i, j)
+                energy += self.__singleEnergy(i, j)
 
         # to avoid counting pairs twice, divide by two
         # divide by maximum possible energy to normalise
@@ -63,30 +63,30 @@ class IsingSquare:
 
     # calculates the magnitude of the residual magnetic spin of the lattice
     # normalise by dividing by order of lattice squared
-    def totalMag(self):
+    def __totalMag(self):
         return math.fabs(np.sum(np.sum(self.spins)) / (self.order ** 2))
 
-    def specHeat(self, energy, energySquared, temp):
+    def __specHeat(self, energy, energySquared, temp):
         return (energySquared - energy ** 2) * (1 / (self.order * self.order * 2 * temp * temp))
 
-    def suscep(self, mag, magSquared, temp):
+    def __suscep(self, mag, magSquared, temp):
         return self.J * (magSquared - mag ** 2) * (1 / (self.order * self.order * 2 * temp))
     # attempts to flip a random spin using the metropolis algorithm and the Boltzmann distribution
-    def tryFlip(self, row, col):
+    def __tryFlip(self, row, col):
         # energy change = -2 * E_initial
         # so accept change if E_initial >= 0
 
-        energy = self.singleEnergy(row, col)
+        energy = self.__singleEnergy(row, col)
 
         if energy <= 0 or np.random.random() <= math.exp(-self.beta * 2 * energy):
             self.spins[row][col] *= -1
 
     # closes plot window
-    def close_event(self):
+    def __close_event(self):
         plt.close()  # timer calls this function after 3 seconds and closes the window
 
     # plots a meshgrid of the initial and final spin lattices
-    def plotStartEndSpins(self, spinsList, iters=1000000):
+    def __plotStartEndSpins(self, spinsList, iters=1000000):
 
         cmap = colors.ListedColormap(['red', 'yellow'])
         bounds = [-1, 0, 1]
@@ -112,14 +112,14 @@ class IsingSquare:
 
         # timer = fig.canvas.new_timer(
         #     interval=graphInterval)  # creating a timer object and setting an interval of 3000 milliseconds
-        # timer.add_callback(self.close_event)
+        # timer.add_callback(self.__close_event)
         # timer.start()
         plt.show()
 
     # simulates the lattice at a constant temperature temp, for iters iterations, plots the resulting lattices, and returns the spin configurations
     def basicIter(self, iters=1000000, temp=1, plot=False):
 
-        self.resetSpins()
+        self.__resetSpins()
         spinsList = [copy.deepcopy(self.spins)]
 
         self.temp = temp
@@ -127,12 +127,12 @@ class IsingSquare:
 
         for i in np.arange(iters + 1):
             row, col = np.random.randint(self.order), np.random.randint(self.order)
-            self.tryFlip(row, col)
+            self.__tryFlip(row, col)
 
         spinsList.append(self.spins)
 
         if plot:
-            self.plotStartEndSpins(spinsList, iters)
+            self.__plotStartEndSpins(spinsList, iters)
         else:
             for i in np.arange(len(spinsList[0])):
                 spinsList[0][i] = np.asarray(spinsList[0][i])
@@ -148,7 +148,7 @@ class IsingSquare:
     # plotProperties: plot the residual spin, total energy, susceptibility and specific heat
     def tempRangeIter(self, tempRange=np.arange(start=0.8, stop=3.2, step=0.05), itersPerTemp=100000, plotProperties=False):
 
-        self.resetSpins()
+        self.__resetSpins()
 
         # store the averages here
         energyList = []
@@ -163,7 +163,7 @@ class IsingSquare:
             # allow to reach equilibrium
             for i in np.arange(itersPerTemp + 1):
                 row, col = np.random.randint(0, self.order), np.random.randint(0, self.order)
-                self.tryFlip(row, col)
+                self.__tryFlip(row, col)
 
             #do a further thousand iterations to get average, and every hundred iterations, store the properties
             if plotProperties:
@@ -176,14 +176,14 @@ class IsingSquare:
 
                     if i % 5000 == 0:
 
-                        energy = self.totalEnergy()
-                        mag = self.totalMag()
+                        energy = self.__totalEnergy()
+                        mag = self.__totalMag()
 
                         energyListEquilib.append(energy)
                         magListEquilib.append(mag)
 
                     row, col = np.random.randint(0, self.order), np.random.randint(0, self.order)
-                    self.tryFlip(row, col)
+                    self.__tryFlip(row, col)
 
                 energyAvg = np.average(energyListEquilib)
                 energySquaredAvg = np.average(np.square(energyListEquilib))
@@ -192,11 +192,11 @@ class IsingSquare:
 
                 energyList.append(energyAvg)
                 magList.append(magAvg)
-                specHeatList.append(self.specHeat(energyAvg, energySquaredAvg, temp))
-                suscepList.append(self.suscep(magAvg, magSquaredAvg, temp))
+                specHeatList.append(self.__specHeat(energyAvg, energySquaredAvg, temp))
+                suscepList.append(self.__suscep(magAvg, magSquaredAvg, temp))
 
             # reset the spins for the next temperature
-            self.resetSpins()
+            self.__resetSpins()
 
         if plotProperties:
 
@@ -260,10 +260,10 @@ class IsingTriangle:
         self.suscepList = []
 
         self.spins = []
-        self.resetSpins()
+        self.__resetSpins()
 
     # reset the spin lattice to a random configuration
-    def resetSpins(self):
+    def __resetSpins(self):
 
         self.spins = []
 
@@ -275,7 +275,7 @@ class IsingTriangle:
         self.spins = np.array(self.spins)
 
     # returns an array of an atom's 6 nearest neighbours
-    def neighbours(self, row, col):
+    def __neighbours(self, row, col):
 
         # centre atoms
         if 1 < row < self.order - 1 and 0 < col < row:
@@ -291,21 +291,21 @@ class IsingTriangle:
         # left side central
         elif 0 < row < self.order - 1 and col == 0:
             return np.asarray([self.spins[row - 1][0],
-                              self.spins[self.order - row][self.order - row - 1],
-
                               self.spins[row][1],
-                              self.spins[self.order - row - 1][self.order - row - 1],
 
                               self.spins[row + 1][0],
-                              self.spins[row + 1][1]])
+                              self.spins[row + 1][1],
+
+                              self.spins[row][row],
+                              self.spins[row - 1][row - 1]])
 
         # right side central
         elif 0 < row < self.order - 1 and col == row:
             return np.asarray([self.spins[row - 1][row - 1],
-                              self.spins[self.order - row][1],
+                              self.spins[row - 1][0],
 
                               self.spins[row][row - 1],
-                              self.spins[self.order - row - 1][1],
+                              self.spins[row][0]
 
                               self.spins[row + 1][row],
                               self.spins[row + 1][row + 1]])
@@ -318,55 +318,55 @@ class IsingTriangle:
                                self.spins[row][col - 1],
                                self.spins[row][col + 1],
 
-                               self.spins[row - 1][col - 1],
-                               self.spins[row - 1][col]])
+                               self.spins[0][0],
+                               self.spins[0][0])
 
         # very top
         elif row == 0:
             return np.asarray([self.spins[1][0],
                               self.spins[1][1],
 
-                              self.spins[1][0],
-                              self.spins[1][1],
-
                               self.spins[self.order - 1][0],
-                              self.spins[self.order - 1][self.order - 1]])
+                              self.spins[self.order - 1][self.order - 1],
+
+                              self.spins[self.order - 1][1],
+                              self.spins[self.order - 1][self.order - 2]])
         # bottom left
         elif row == self.order - 1 and col == 0:
             return np.asarray([self.spins[row - 1][0],
                                self.spins[row - 1][row - 1],
 
                                self.spins[row][1],
-                               self.spins[row][row - 2],
+                               self.spins[row][row],
 
-                               self.spins[1][0],
-                               self.spins[1][1]])
+                               self.spins[0][0],
+                               self.spins[0][0]])
 
         # bottom right
         elif row == self.order - 1 and (col == row):
             return np.asarray([self.spins[row - 1][0],
                                self.spins[row - 1][row - 1],
 
-                               self.spins[row][1],
-                               self.spins[row][row - 2],
+                               self.spins[row][0],
+                               self.spins[row][row - 1],
 
-                               self.spins[1][0],
-                               self.spins[1][1]])
+                               self.spins[0][0],
+                               self.spins[0][0]])
 
     # calculates the energy of a single atom, using the Hamiltonian
-    def singleEnergy(self, row, col):
+    def __singleEnergy(self, row, col):
 
-        neighbours = self.neighbours(row, col)
+        neighbours = self.__neighbours(row, col)
         selfSpin = self.spins[row][col]
         return self.J * selfSpin * np.sum(np.sum(neighbours)) - self.h * selfSpin
 
     # calculates the magnitude of the entire energy of the lattice
-    def totalEnergy(self):
+    def __totalEnergy(self):
 
         energy = 0.0
         for i in np.arange(self.order):
             for j in np.arange(len(self.spins[i])):
-                energy += self.singleEnergy(i, j)
+                energy += self.__singleEnergy(i, j)
 
         # to avoid counting pairs twice, divide by two
         # divide by maximum possible energy to normalise
@@ -374,30 +374,30 @@ class IsingTriangle:
 
     # calculates the magnitude of the residual magnetic spin of the lattice
     # normalise by dividing by order of lattice squared
-    def totalMag(self):
+    def __totalMag(self):
         return math.fabs((np.sum(np.sum(self.spins)) * 2) / (self.order ** 2 + self.order))
 
-    def specHeat(self, energy, energySquared, temp):
+    def __specHeat(self, energy, energySquared, temp):
         return (energySquared - energy ** 2) * (1 / (self.order * self.order * 2 * temp * temp))
 
-    def suscep(self, mag, magSquared, temp):
+    def __suscep(self, mag, magSquared, temp):
         return self.J * (magSquared - mag ** 2) * (1 / (self.order * self.order * 2 * temp))
     # attempts to flip a random spin using the metropolis algorithm and the Boltzmann distribution
-    def tryFlip(self, row, col):
+    def __tryFlip(self, row, col):
         # energy change = -2 * E_initial
         # so accept change if E_initial <= 0
 
-        energy = self.singleEnergy(row, col)
+        energy = self.__singleEnergy(row, col)
 
         if energy <= 0 or np.random.random() <= math.exp(-self.beta * 2 * energy):
             self.spins[row][col] *= -1
 
     # closes plot window
-    def close_event(self):
+    def __close_event(self):
         plt.close()  # timer calls this function after 3 seconds and closes the window
 
     # plots a meshgrid of the initial and final spin lattices
-    def plotStartEndSpins(self, spinsList, iters=1000000):
+    def __plotStartEndSpins(self, spinsList, iters=1000000):
 
         for i in np.arange(self.order):
 
@@ -437,14 +437,14 @@ class IsingTriangle:
 
         # timer = fig.canvas.new_timer(
         #     interval=graphInterval)  # creating a timer object and setting an interval of 3000 milliseconds
-        # timer.add_callback(self.close_event)
+        # timer.add_callback(self.__close_event)
         # timer.start()
         plt.show()
 
     # simulates the lattice at a constant temperature temp, for iters iterations, and returns the spin configurations
     def basicIter(self, iters=1000000, temp=1, plot=False):
 
-        self.resetSpins()
+        self.__resetSpins()
         spinsList = [copy.deepcopy(self.spins)]
 
         self.temp = temp
@@ -453,12 +453,12 @@ class IsingTriangle:
         for i in np.arange(iters + 1):
             row = np.random.randint(self.order)
             col = np.random.randint(row + 1)
-            self.tryFlip(row, col)
+            self.__tryFlip(row, col)
 
         spinsList.append(self.spins)
 
         if plot:
-            self.plotStartEndSpins(spinsList, iters)
+            self.__plotStartEndSpins(spinsList, iters)
         else:
             for i in np.arange(len(spinsList[0])):
                 spinsList[0][i] = np.asarray(spinsList[0][i])
@@ -474,7 +474,7 @@ class IsingTriangle:
     # plotProperties: plot the residual spin, total energy, susceptibility and specific heat
     def tempRangeIter(self, tempRange=np.arange(start=1, stop=5, step=0.2), itersPerTemp=100000, plotProperties=False):
 
-        self.resetSpins()
+        self.__resetSpins()
 
         # store the averages here
         energyList = []
@@ -490,7 +490,7 @@ class IsingTriangle:
             for i in np.arange(itersPerTemp + 1):
                 row = np.random.randint(self.order)
                 col = np.random.randint(row + 1)
-                self.tryFlip(row, col)
+                self.__tryFlip(row, col)
 
             #do a further ten thousand iterations to get average, and every two hundred iterations, store the properties
             if plotProperties:
@@ -503,15 +503,15 @@ class IsingTriangle:
 
                     if i % 200 == 0:
 
-                        energy = self.totalEnergy()
-                        mag = self.totalMag()
+                        energy = self.__totalEnergy()
+                        mag = self.__totalMag()
 
                         energyListEquilib.append(energy)
                         magListEquilib.append(mag)
 
                     row = np.random.randint(self.order)
                     col = np.random.randint(row + 1)
-                    self.tryFlip(row, col)
+                    self.__tryFlip(row, col)
 
                 energyAvg = np.average(energyListEquilib)
                 energySquaredAvg = np.average(np.square(energyListEquilib))
@@ -520,11 +520,11 @@ class IsingTriangle:
 
                 energyList.append(energyAvg)
                 magList.append(magAvg)
-                specHeatList.append(self.specHeat(energyAvg, energySquaredAvg, temp))
-                suscepList.append(self.suscep(magAvg, magSquaredAvg, temp))
+                specHeatList.append(self.__specHeat(energyAvg, energySquaredAvg, temp))
+                suscepList.append(self.__suscep(magAvg, magSquaredAvg, temp))
 
             # reset the spins for the next temperature
-            self.resetSpins()
+            self.__resetSpins()
 
         if plotProperties:
 
@@ -580,10 +580,10 @@ class IsingHexagon:
         self.energyList = []
         self.suscepList = []
 
-        self.resetSpins()
+        self.__resetSpins()
 
     # reset the spin lattice to a random configuration
-    def resetSpins(self):
+    def __resetSpins(self):
         self.spins = []
 
         vals = np.array([-1, 1])
@@ -621,7 +621,7 @@ class IsingHexagon:
                               self.spins[row + 1][col]])
 
     # returns an array of an atom's 3 nearest neighbours
-    def neighbours(self, row, col):
+    def __neighbours(self, row, col):
         # centre atoms
         if self.order - 1 < row < self.order - 2 and self.order - 1 < col < self.order - 2:
             if col % 2 == 0:
@@ -673,19 +673,19 @@ class IsingHexagon:
             return self.centreReturn(True, 3, 3)
 
     # calculates the energy of a single atom, using the Hamiltonian
-    def singleEnergy(self, row, col):
+    def __singleEnergy(self, row, col):
 
-        neighbours = self.neighbours(row, col)
+        neighbours = self.__neighbours(row, col)
         selfSpin = self.spins[row][col]
         return self.J * selfSpin * np.sum(np.sum(neighbours)) - self.h * selfSpin
 
     # calculates the magnitude of the entire energy of the lattice
-    def totalEnergy(self):
+    def __totalEnergy(self):
 
         energy = 0.0
         for i in np.arange(len(self.spins)):
             for j in np.arange(len(self.spins[i])):
-                energy += self.singleEnergy(i, j)
+                energy += self.__singleEnergy(i, j)
 
         # to avoid counting pairs twice, divide by two
         # divide by maximum possible energy to normalise
@@ -693,34 +693,34 @@ class IsingHexagon:
 
     # calculates the magnitude of the residual magnetic spin of the lattice
     # normalise by dividing by order of lattice squared
-    def totalMag(self):
+    def __totalMag(self):
         sum = 0
         for i in np.arange(len(self.spins)):
             sum += np.sum(self.spins[i])
 
         return math.fabs(float(sum) / (6 * self.order ** 2))
 
-    def specHeat(self, energy, energySquared, temp):
+    def __specHeat(self, energy, energySquared, temp):
         return (energySquared - energy ** 2) * (1 / (self.order * self.order * 2 * temp * temp))
 
-    def suscep(self, mag, magSquared, temp):
+    def __suscep(self, mag, magSquared, temp):
         return self.J * (magSquared - mag ** 2) * (1 / (self.order * self.order * 2 * temp))
     # attempts to flip a random spin using the metropolis algorithm and the Boltzmann distribution
-    def tryFlip(self, row, col):
+    def __tryFlip(self, row, col):
         # energy change = -2 * E_initial
         # so accept change if E_initial <= 0
 
-        energy = self.singleEnergy(row, col)
+        energy = self.__singleEnergy(row, col)
 
         if energy <= 0 or np.random.random() <= math.exp(-self.beta * 2 * energy):
             self.spins[row][col] *= -1
 
     # closes plot window
-    def close_event(self):
+    def __close_event(self):
         plt.close()  # timer calls this function after 3 seconds and closes the window
 
     # plots a meshgrid of the initial and final spin lattices
-    def plotStartEndSpins(self, spinsList, iters=1000000):
+    def __plotStartEndSpins(self, spinsList, iters=1000000):
 
         for i in np.arange(self.order):
 
@@ -760,14 +760,14 @@ class IsingHexagon:
 
         # timer = fig.canvas.new_timer(
         #     interval=graphInterval)  # creating a timer object and setting an interval of 3000 milliseconds
-        # timer.add_callback(self.close_event)
+        # timer.add_callback(self.__close_event)
         # timer.start()
         plt.show()
 
     # simulates the lattice at a constant temperature temp, for iters iterations, and returns the spin configurations
     def basicIter(self, iters=1000000, temp=1, plot=False):
 
-        self.resetSpins()
+        self.__resetSpins()
         spinsList = [copy.deepcopy(self.spins)]
 
         self.temp = temp
@@ -776,12 +776,12 @@ class IsingHexagon:
         for i in np.arange(iters + 1):
             row = np.random.randint(self.order)
             col = np.random.randint(row + 1)
-            self.tryFlip(row, col)
+            self.__tryFlip(row, col)
 
         spinsList.append(self.spins)
 
         if plot:
-            self.plotStartEndSpins(spinsList, iters)
+            self.__plotStartEndSpins(spinsList, iters)
         else:
             for i in np.arange(len(spinsList[0])):
                 spinsList[0][i] = np.asarray(spinsList[0][i])
@@ -797,7 +797,7 @@ class IsingHexagon:
     # plotProperties: plot the residual spin, total energy, susceptibility and specific heat
     def tempRangeIter(self, tempRange=np.arange(start=1, stop=5, step=0.2), itersPerTemp=100000, plotProperties=False):
 
-        self.resetSpins()
+        self.__resetSpins()
 
         # store the averages here
         energyList = []
@@ -813,7 +813,7 @@ class IsingHexagon:
             for i in np.arange(itersPerTemp + 1):
                 row = np.random.randint(self.order)
                 col = np.random.randint(row + 1)
-                self.tryFlip(row, col)
+                self.__tryFlip(row, col)
 
             #do a further thousand iterations to get average, and every hundred iterations, store the properties
             if plotProperties:
@@ -826,15 +826,15 @@ class IsingHexagon:
 
                     if i % 400 == 0:
 
-                        energy = self.totalEnergy()
-                        mag = self.totalMag()
+                        energy = self.__totalEnergy()
+                        mag = self.__totalMag()
 
                         energyListEquilib.append(energy)
                         magListEquilib.append(mag)
 
                     row = np.random.randint(self.order)
                     col = np.random.randint(row + 1)
-                    self.tryFlip(row, col)
+                    self.__tryFlip(row, col)
 
                 energyAvg = np.average(energyListEquilib)
                 energySquaredAvg = np.average(np.square(energyListEquilib))
@@ -843,11 +843,11 @@ class IsingHexagon:
 
                 energyList.append(energyAvg)
                 magList.append(magAvg)
-                specHeatList.append(self.specHeat(energyAvg, energySquaredAvg, temp))
-                suscepList.append(self.suscep(magAvg, magSquaredAvg, temp))
+                specHeatList.append(self.__specHeat(energyAvg, energySquaredAvg, temp))
+                suscepList.append(self.__suscep(magAvg, magSquaredAvg, temp))
 
             # reset the spins for the next temperature
-            self.resetSpins()
+            self.__resetSpins()
 
         if plotProperties:
 
