@@ -305,7 +305,7 @@ class IsingTriangle:
                               self.spins[row - 1][0],
 
                               self.spins[row][row - 1],
-                              self.spins[row][0]
+                              self.spins[row][0],
 
                               self.spins[row + 1][row],
                               self.spins[row + 1][row + 1]])
@@ -319,7 +319,7 @@ class IsingTriangle:
                                self.spins[row][col + 1],
 
                                self.spins[0][0],
-                               self.spins[0][0])
+                               self.spins[0][0]])
 
         # very top
         elif row == 0:
@@ -568,6 +568,9 @@ class IsingHexagon:
     # initialise a spin lattice and populate with random spins
     def __init__(self, order, interactionVal=1, magMoment=1):
 
+        if order < 2:
+            raise ValueError('Order number needs to be greater than 3.')
+
         self.temp = 0.0
         self.beta = 0.0
         self.boltzmann = 1.38064852 * (10 ** -23)
@@ -586,7 +589,7 @@ class IsingHexagon:
     def __resetSpins(self):
         self.spins = []
 
-        vals = np.array([-1, 1])
+        vals = np.array([1, -1])
 
         if self.order == 1:
             self.spins.append(list(np.random.choice(vals, size=2)))
@@ -623,54 +626,99 @@ class IsingHexagon:
     # returns an array of an atom's 3 nearest neighbours
     def __neighbours(self, row, col):
         # centre atoms
-        if self.order - 1 < row < self.order - 2 and self.order - 1 < col < self.order - 2:
-            if col % 2 == 0:
-                if self.order % 2 == 0:
-                    if row % 2 == 0:
-                        return self.centreReturn(True, row, col)
+        if 1 < row < 4 * self.order - 3:
+            if self.order - 1 < row < 3 * self.order - 1 and 0 < col < len(self.spins[row]) - 1:
+                # handles centre atoms
+                if col % 2 == 0:
+                    if self.order % 2 == 0:
+                        if row % 2 == 0:
+                            return self.centreReturn(True, row, col)
+                        else:
+                            return self.centreReturn(False, row, col)
                     else:
-                        return self.centreReturn(False, row, col)
+                        if row % 2 == 0:
+                            return self.centreReturn(False, row, col)
+                        else:
+                            return self.centreReturn(True, row, col)
                 else:
-                    if row % 2 == 0:
-                        return self.centreReturn(False, row, col)
+                    if self.order % 2 == 0:
+                        if row % 2 == 0:
+                            return self.centreReturn(False, row, col)
+                        else:
+                            return self.centreReturn(True, row, col)
                     else:
-                        return self.centreReturn(True, row, col)
+                        if row % 2 == 0:
+                            return self.centreReturn(True, row, col)
+                        else:
+                            return self.centreReturn(False, row, col)
+
+            elif (row < self.order or row > 3 * self.order - 2) and 1 < col < len(self.spins[row]) - 2:
+                # handles centre atoms
+                if col % 2 == 0:
+                    if self.order % 2 == 0:
+                        if row % 2 == 0:
+                            return self.centreReturn(True, row, col)
+                        else:
+                            return self.centreReturn(False, row, col)
+                    else:
+                        if row % 2 == 0:
+                            return self.centreReturn(False, row, col)
+                        else:
+                            return self.centreReturn(True, row, col)
+                else:
+                    if self.order % 2 == 0:
+                        if row % 2 == 0:
+                            return self.centreReturn(False, row, col)
+                        else:
+                            return self.centreReturn(True, row, col)
+                    else:
+                        if row % 2 == 0:
+                            return self.centreReturn(True, row, col)
+                        else:
+                            return self.centreReturn(False, row, col)
+        # left
+        if 0 < row < (4 * self.order - 2) and col < 2:
+            if row % 2 == 0:
+                return np.asarray([self.spins[row - 1][0],
+                                   self.spins[row + 1][0],
+                                   self.spins[row][len(self.spins[row]) - 1]])
             else:
-                if self.order % 2 == 0:
-                    if row % 2 == 0:
-                        return self.centreReturn(False, row, col)
-                    else:
-                        return self.centreReturn(True, row, col)
-                else:
-                    if row % 2 == 0:
-                        return self.centreReturn(True, row, col)
-                    else:
-                        return self.centreReturn(False, row, col)
+                return np.asarray([self.spins[row][len(self.spins[row]) - 1],
+                                  self.spins[row][1],
+                                  self.spins[row + 1][0]])
+
+        # right
+        elif 0 < row < (4 * self.order - 2) and col > len(self.spins[row]) - 3:
+            if row % 2 == 0:
+                return np.asarray([self.spins[row - 1][0],
+                                   self.spins[row + 1][0],
+                                   self.spins[row][len(self.spins[row]) - 1]])
+            else:
+                return np.asarray([self.spins[row - 1][len(self.spins[row - 1]) - 1],
+                                  self.spins[row][col - 1],
+                                  self.spins[row][0]])
 
         # top
-        elif row == 0 or row == 2 * self.order - 1:
+        elif row == 0:
             if col == 0:
-                return np.asarray([self.spins[2 * self.order - 1][0],
-                                   self.spins[0][1],
-                                   self.spins[1][1]])
+                return np.asarray([self.spins[0][1],
+                                   self.spins[1][1],
+                                   self.spins[4 * self.order - 2][0]])
             else:
-                return np.asarray([self.spins[2 * self.order - 1][0],
-                                  self.spins[0][1],
-                                  self.spins[1][1]])
+                return np.asarray([self.spins[0][0],
+                                   self.spins[1][2],
+                                   self.spins[4 * self.order - 2][1]])
 
-        # side
-        elif col == 0 or col == 2 * self.order - 1:
-            if row == 0:
-                return np.asarray([self.spins[2 * self.order - 1][0],
-                                   self.spins[0][1],
-                                   self.spins[1][1]])
+        # bottom
+        elif row == 4 * self.order - 2:
+            if col == 0:
+                return np.asarray([self.spins[row][1],
+                                   self.spins[row - 1][1],
+                                   self.spins[0][0]])
             else:
-                return np.asarray([self.spins[2 * self.order - 1][0],
-                                  self.spins[0][1],
-                                  self.spins[1][1]])
-
-        else:
-            return self.centreReturn(True, 3, 3)
+                return np.asarray([self.spins[row][0],
+                                   self.spins[1][2],
+                                   self.spins[0][1]])
 
     # calculates the energy of a single atom, using the Hamiltonian
     def __singleEnergy(self, row, col):
@@ -686,10 +734,9 @@ class IsingHexagon:
         for i in np.arange(len(self.spins)):
             for j in np.arange(len(self.spins[i])):
                 energy += self.__singleEnergy(i, j)
-
         # to avoid counting pairs twice, divide by two
         # divide by maximum possible energy to normalise
-        return -math.fabs(energy / (3 * self.order * self.order * (-3 * self.J - self.h)))
+        return -math.fabs(energy / ((3 * self.J + self.h) * (6 * self.order * self.order))) #( * (-3 * self.J - self.h)
 
     # calculates the magnitude of the residual magnetic spin of the lattice
     # normalise by dividing by order of lattice squared
@@ -774,8 +821,8 @@ class IsingHexagon:
         self.beta = 1.0 / self.temp
 
         for i in np.arange(iters + 1):
-            row = np.random.randint(self.order)
-            col = np.random.randint(row + 1)
+            row = np.random.randint(4 * self.order - 1)
+            col = np.random.randint(len(self.spins[row]))
             self.__tryFlip(row, col)
 
         spinsList.append(self.spins)
@@ -811,8 +858,8 @@ class IsingHexagon:
 
             # allow to reach equilibrium
             for i in np.arange(itersPerTemp + 1):
-                row = np.random.randint(self.order)
-                col = np.random.randint(row + 1)
+                row = np.random.randint(4 * self.order - 1)
+                col = np.random.randint(len(self.spins[row]))
                 self.__tryFlip(row, col)
 
             #do a further thousand iterations to get average, and every hundred iterations, store the properties
@@ -832,8 +879,8 @@ class IsingHexagon:
                         energyListEquilib.append(energy)
                         magListEquilib.append(mag)
 
-                    row = np.random.randint(self.order)
-                    col = np.random.randint(row + 1)
+                    row = np.random.randint(4 * self.order - 1)
+                    col = np.random.randint(len(self.spins[row]))
                     self.__tryFlip(row, col)
 
                 energyAvg = np.average(energyListEquilib)
