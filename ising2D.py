@@ -264,15 +264,12 @@ class IsingTriangle:
 
     # reset the spin lattice to a random configuration
     def __resetSpins(self):
-
         self.spins = []
 
         vals = np.array([-1, 1])
 
         for i in np.arange(self.order):
             self.spins.append(list(np.random.choice(vals, size=i + 1)))
-
-        self.spins = np.array(self.spins)
 
     # returns an array of an atom's 6 nearest neighbours
     def __neighbours(self, row, col):
@@ -400,7 +397,6 @@ class IsingTriangle:
     def __plotStartEndSpins(self, spinsList, iters=1000000):
 
         for i in np.arange(self.order):
-
             for j in np.arange(self.order - i - 1):
 
                 spinsList[0][i].append(8)
@@ -457,6 +453,9 @@ class IsingTriangle:
 
         spinsList.append(self.spins)
 
+        print(spinsList[0])
+        print(spinsList[1])
+
         if plot:
             self.__plotStartEndSpins(spinsList, iters)
         else:
@@ -467,7 +466,6 @@ class IsingTriangle:
                 spinsList[1][i] = np.asarray(spinsList[1][i])
 
             spinsList = np.array(spinsList)
-
         return spinsList
 
     # simulates the lattice oer a temperature range tempRange, with itersPerTemp iterations per temperature
@@ -769,12 +767,11 @@ class IsingHexagon:
     # plots a meshgrid of the initial and final spin lattices
     def __plotStartEndSpins(self, spinsList, iters=1000000):
 
-        for i in np.arange(self.order):
-
-            for j in np.arange(self.order - i - 1):
-
-                spinsList[0][i].append(8)
-                spinsList[1][i].append(8)
+        for i in np.arange(2):
+            for j in spinsList[i]:
+                while len(j) < 2 * self.order:
+                    j.insert(0, 8)
+                    j.append(8)
 
         cmap = colors.ListedColormap(['red', 'yellow', 'white'])
         bounds = [-1, 0, 2, 10]
@@ -903,7 +900,6 @@ class IsingHexagon:
             plt.subplot(2, 2, 1)
             plt.plot(tempRange, energyList)
             plt.title("Total Energy")
-            #plt.axvline(x=2.269185, c='r', linestyle='--')
             plt.tick_params(axis="x", direction="in")
             plt.tick_params(axis="y", direction="in")
             plt.xlim(tempRange[0], tempRange[len(tempRange) - 1])
@@ -911,7 +907,6 @@ class IsingHexagon:
             plt.subplot(2, 2, 2)
             plt.plot(tempRange, magList)
             plt.title("Residual Spin")
-            #plt.axvline(x=2.269185, c='r', linestyle='--')
             plt.tick_params(axis="x", direction="in")
             plt.tick_params(axis="y", direction="in")
             plt.xlim(tempRange[0], tempRange[len(tempRange) - 1])
@@ -920,7 +915,6 @@ class IsingHexagon:
             plt.subplot(2, 2, 3)
             plt.plot(tempRange, specHeatList)
             plt.title("Specific Heat Capacity")
-            #plt.axvline(x=2.269185, c='r', linestyle='--')
             plt.tick_params(axis="x", direction="in")
             plt.tick_params(axis="y", direction="in")
             plt.xlim(tempRange[0], tempRange[len(tempRange) - 1])
@@ -929,7 +923,6 @@ class IsingHexagon:
             plt.subplot(2, 2, 4)
             plt.plot(tempRange, suscepList)
             plt.title("Susceptibility")
-            #plt.axvline(x=2.269185, c='r', linestyle='--')
             plt.tick_params(axis="x", direction="in")
             plt.tick_params(axis="y", direction="in")
             plt.xlim(tempRange[0], tempRange[len(tempRange) - 1])
