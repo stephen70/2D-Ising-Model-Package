@@ -1,4 +1,4 @@
-This is a Python package to simulate 2D Ising models using the Monte Carlo Metropolis algorithm.
+An old Python package to simulate 2D Ising models using the Monte Carlo Metropolis algorithm.
 
 Methods:
 
